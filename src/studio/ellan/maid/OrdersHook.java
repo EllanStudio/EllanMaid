@@ -70,7 +70,7 @@ final class OrdersHook implements Runnable {
 
     void give(Player player, String task) {
         ConfigurationSection c = cfg();
-        if (rnd.nextDouble() >= c.getDouble("chance", 1.0)) return;
+        if (rnd.nextDouble() >= c.getDouble("chance", 0.5)) return;
         ItemStack it = pl.ceItem(ItemFeatures.NS + "power_point");
         if (it == null) return;
         int n = Math.max(1, c.getInt("points", 1));

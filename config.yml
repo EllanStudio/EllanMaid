@@ -20,7 +20,7 @@ power-orders:
     password: ''
   channel: ellan:timedorders:events
   points: 1
-  chance: 1.0
+  chance: 0.5
 # size of the maid shown on a garage kit (1.0 = life size)
 kit-scale: 0.8
 # multiplier for chess piece size (1.0 = real size of the piece models)
