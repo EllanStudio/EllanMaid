@@ -154,6 +154,14 @@ public final class EllanMaid extends JavaPlugin implements Listener {
 
     void tryAttach(Entity e) { if (isMaid(e)) attach((Llama) e); }
 
+    /** plays a one-shot animation on her model when the blueprint has it */
+    void playOnce(Llama z, String anim) {
+        ModeledEntity me = ModelEngineAPI.getModeledEntity(z);
+        if (me == null) return;
+        for (ActiveModel am : me.getModels().values())
+            if (am.getBlueprint().getAnimations().containsKey(anim)) am.getAnimationHandler().playAnimation(anim, 0.05, 0.1, 1, true);
+    }
+
     void attach(Llama z) {
         life.init(z);
         String key = z.getPersistentDataContainer().get(kModel, PersistentDataType.STRING);

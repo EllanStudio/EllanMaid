@@ -115,6 +115,10 @@ final class Installer {
 
     /** track = {x,y,z} per time, times given separately */
     static JsonObject animation(String name, double length, Map<String, double[][]> tracks, double[] times, Map<String, String> groupIds) {
+        return animation(name, length, tracks, times, groupIds, "loop");
+    }
+
+    static JsonObject animation(String name, double length, Map<String, double[][]> tracks, double[] times, Map<String, String> groupIds, String loop) {
         JsonObject animators = new JsonObject();
         for (var en : tracks.entrySet()) {
             String id = groupIds.get(en.getKey());
@@ -132,7 +136,7 @@ final class Installer {
         JsonObject an = new JsonObject();
         an.addProperty("uuid", UUID.randomUUID().toString());
         an.addProperty("name", name);
-        an.addProperty("loop", "loop");
+        an.addProperty("loop", loop);
         an.addProperty("override", false);
         an.addProperty("length", length);
         an.addProperty("snapping", 20);
@@ -173,8 +177,17 @@ final class Installer {
         s.put("legLeft", new double[][]{{-85, 10, 0}, {-85, 10, 0}});
         s.put("legRight", new double[][]{{-85, -10, 0}, {-85, -10, 0}});
         add(out, animation("sit", 1.0, s, new double[]{0, 1.0}, g));
+        add(out, attackAnimation(g));
         d.add("animations", out);
     }
 
     private static void add(JsonArray a, JsonObject o) { if (o != null) a.add(o); }
+
+    /** one swing of the right arm with a little body twist, played once per hit (tools/patch_attack.py does the same) */
+    static JsonObject attackAnimation(Map<String, String> g) {
+        Map<String, double[][]> a = new LinkedHashMap<>();
+        a.put("armRight", new double[][]{{0, 0, 0}, {150, 0, -15}, {40, 0, 0}, {0, 0, 0}});
+        a.put("body", new double[][]{{0, 0, 0}, {0, -15, 0}, {0, 10, 0}, {0, 0, 0}});
+        return animation("attack", 0.4, a, new double[]{0, 0.1, 0.25, 0.4}, g, "once");
+    }
 }

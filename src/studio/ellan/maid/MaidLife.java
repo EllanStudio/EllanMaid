@@ -124,12 +124,31 @@ final class MaidLife implements Listener {
         boolean open = pl.bagOpen(z);
         if (!open && max - z.getHealth() >= 2 && t % 50 < 10) selfHeal(z);
         if (!open) pl.items.pickup(z, 1.0, 0.5);
+        Monster near = null;
+        double nd = Double.MAX_VALUE;
         for (Entity en : z.getNearbyEntities(8, 3, 8)) {
-            if (!(en instanceof Monster mo)) continue;
+            if (!(en instanceof Monster mo) || mo.isDead()) continue;
             if (mo.getTarget() == null && mo.hasLineOfSight(z)) mo.setTarget(z);
-            if (t % 20 < 10 && mo.getLocation().distanceSquared(z.getLocation()) < 6.25) mo.damage(attack(z), z);
+            double d = mo.getLocation().distanceSquared(z.getLocation());
+            if (d < nd) { nd = d; near = mo; }
+        }
+        if (near != null && nd < 4.5 * 4.5) face(z, near.getLocation());
+        if (near != null && t % 20 < 10 && nd < 6.25) {
+            pl.playOnce(z, "attack");
+            z.swingMainHand();
+            Monster hit = near;
+            z.getScheduler().runDelayed(pl, x -> { if (hit.isValid() && z.isValid()) hit.damage(attack(z), z); }, null, 2L); // lands with the swing
         }
         extinguish(z);
+    }
+
+    /** turns her (and so her model) towards a point */
+    static void face(Llama z, Location at) {
+        Location from = z.getLocation();
+        double dx = at.getX() - from.getX(), dz = at.getZ() - from.getZ();
+        float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        z.setRotation(yaw, 0);
+        z.setBodyYaw(yaw);
     }
 
     /** eats food from the bag: heal max(total/5,1) with probability total/5 */
