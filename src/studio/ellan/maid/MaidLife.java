@@ -121,8 +121,9 @@ final class MaidLife implements Listener {
         double max = z.getAttribute(Attribute.MAX_HEALTH).getValue();
         long t = z.getTicksLived();
         if (z.getHealth() < max && rnd.nextDouble() < 0.0247) { z.setHealth(Math.min(max, z.getHealth() + 1)); z.getWorld().spawnParticle(Particle.HEART, z.getLocation().add(0, 1.5, 0), 1, 0.2, 0.1, 0.2, 0); }
-        if (max - z.getHealth() >= 2 && t % 50 < 10) selfHeal(z);
-        pl.items.pickup(z, 1.0, 0.5);
+        boolean open = pl.bagOpen(z);
+        if (!open && max - z.getHealth() >= 2 && t % 50 < 10) selfHeal(z);
+        if (!open) pl.items.pickup(z, 1.0, 0.5);
         for (Entity en : z.getNearbyEntities(8, 3, 8)) {
             if (!(en instanceof Monster mo)) continue;
             if (mo.getTarget() == null && mo.hasLineOfSight(z)) mo.setTarget(z);
@@ -383,9 +384,11 @@ final class MaidLife implements Listener {
         ItemStack hand = e.player().getInventory().getItemInMainHand();
         if (!hand.hasItemMeta()) return;
         PersistentDataContainer d = hand.getItemMeta().getPersistentDataContainer();
-        if (!d.has(pl.kModel, PersistentDataType.STRING)) return;
         Entity base = e.furniture().baseEntity();
-        copy(d, base.getPersistentDataContainer(), pl);
+        if (d.has(pl.kModel, PersistentDataType.STRING)) copy(d, base.getPersistentDataContainer(), pl);
+        else if (!pl.modelKeys.isEmpty()) // a blank kit from the shop is a blind box: random maid
+            base.getPersistentDataContainer().set(pl.kModel, PersistentDataType.STRING, pl.modelKeys.get(rnd.nextInt(pl.modelKeys.size())));
+        else return;
         base.getPersistentDataContainer().set(kKit, PersistentDataType.BYTE, (byte) 1);
         base.getScheduler().runDelayed(pl, t -> attachKit(base), null, 10L);
     }

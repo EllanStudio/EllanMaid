@@ -63,6 +63,7 @@ final class ItemFeatures implements Listener {
 
     @EventHandler public void onKill(EntityDeathEvent e) {
         if (!(e.getEntity() instanceof Monster) || e.getEntity().getKiller() == null) return;
+        if (pl.power != null && PowerHook.isMythic(e.getEntity())) return; // MythicMobs kills are handled by PowerHook
         if (Math.random() < pl.getConfig().getDouble("power-drop-chance", 0.05)) {
             ItemStack it = pl.ceItem(NS + "power_point");
             if (it != null) e.getDrops().add(it);

@@ -47,6 +47,12 @@ public final class EllanMaid extends JavaPlugin implements Listener {
     Boards boards;
     ItemFeatures items;
     MaidLife life;
+    Work work;
+    Fishing fishing;
+    Travel travel;
+    Wardrobe wardrobe;
+    PowerHook power;
+    final Map<UUID, Integer> gen = new HashMap<>();
 
     @Override public void onEnable() {
         saveDefaultConfig();
@@ -63,6 +69,17 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         life = new MaidLife(this);
         getServer().getPluginManager().registerEvents(life, this);
         getServer().getPluginManager().registerEvents(this, this);
+        var pm = getServer().getPluginManager();
+        work = new Work(this);
+        fishing = new Fishing(this);
+        pm.registerEvents(fishing, this);
+        travel = new Travel(this);
+        pm.registerEvents(travel, this);
+        wardrobe = new Wardrobe(this);
+        pm.registerEvents(wardrobe, this);
+        if (pm.getPlugin("CustomFishing") != null) try { pm.registerEvents(new CustomFishingHook(fishing), this); } catch (Throwable t) { getLogger().warning("CustomFishing hook off: " + t); }
+        if (pm.getPlugin("MythicMobs") != null) try { power = new PowerHook(this); pm.registerEvents(power, this); } catch (Throwable t) { power = null; getLogger().warning("MythicMobs hook off: " + t); }
+        if (pm.getPlugin("SparrowSync") != null) try { pm.registerEvents(new SyncHook(travel), this); } catch (Throwable t) { getLogger().warning("SparrowSync hook off: " + t); }
         // ModelEngine imports blueprints asynchronously after enable, so read them a bit later
         getServer().getGlobalRegionScheduler().runDelayed(this, t -> {
             loadRuntime();
@@ -96,6 +113,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
             getLogger().warning("runtime manifests not readable in " + dir + ": " + ex);
         }
         boards.load(dir);
+        work.cooking.load();
         getLogger().info("maid models with blueprint: " + modelKeys.size() + ", altar recipes: " + altar.size() + ", chairs: " + chairs.size() + ", beds: " + beds.size());
     }
 
@@ -143,18 +161,22 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         me.getModels().keySet().forEach(me::removeModel);
         me.addModel(am, true);
         me.setBaseEntityVisible(false);
-        z.getScheduler().runAtFixedRate(this, t -> tick(z, am, t), null, 10L, 10L);
+        int g = gen.merge(z.getUniqueId(), 1, Integer::sum);
+        z.getScheduler().runAtFixedRate(this, t -> {
+            if (gen.getOrDefault(z.getUniqueId(), 0) != g) { t.cancel(); return; } // re-attached (new outfit): the newer loop takes over
+            tick(z, am, t);
+        }, null, 10L, 10L);
     }
 
     void tick(Llama z, ActiveModel am, io.papermc.paper.threadedregions.scheduler.ScheduledTask task) {
-        if (!z.isValid()) { task.cancel(); return; }
-        items.tick(z);
+        if (!z.isValid()) { task.cancel(); if (z.isDead()) gen.remove(z.getUniqueId()); return; }
+        if (!bagOpen(z)) items.tick(z);
         life.tick(z);
         var anims = am.getBlueprint().getAnimations();
         boolean sit = z.getPersistentDataContainer().has(kSit, PersistentDataType.BYTE);
         Player owner = null;
         try { owner = Bukkit.getPlayer(UUID.fromString(z.getPersistentDataContainer().get(kOwner, PersistentDataType.STRING))); } catch (Exception ignored) {}
-        boolean moving = !sit && life.navigate(z, owner);
+        boolean moving = !sit && ((!bagOpen(z) && work.tick(z)) || life.navigate(z, owner));
         if (sit) z.getPathfinder().stopPathfinding();
         String want = sit && anims.containsKey("sit") ? "sit" : moving && anims.containsKey("walk") ? "walk" : anims.containsKey("idle") ? "idle" : null;
         for (String n : new String[]{"sit", "walk", "idle"})
@@ -201,14 +223,8 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         }
         if (items.onMaid(p, z, hand)) return;
         if (CHANGER.equals(ceId(hand))) {
-            int i = modelKeys.indexOf(pdc.get(kModel, PersistentDataType.STRING));
-            int n = modelKeys.size();
-            if (n == 0) return;
-            String next = modelKeys.get(((i + (p.isSneaking() ? -1 : 1)) % n + n) % n);
-            pdc.set(kModel, PersistentDataType.STRING, next);
-            z.customName(Component.text(modelNames.getOrDefault(next, "女仆")));
-            attach(z);
-            p.sendMessage("换上了新的模样:" + modelNames.get(next));
+            if (modelKeys.isEmpty()) return;
+            wardrobe.open(p, z, Math.max(0, modelKeys.indexOf(pdc.get(kModel, PersistentDataType.STRING))) / Wardrobe.PER);
         } else if (p.isSneaking()) {
             boolean sit = pdc.has(kSit, PersistentDataType.BYTE);
             if (sit) pdc.remove(kSit); else pdc.set(kSit, PersistentDataType.BYTE, (byte) 1);
@@ -218,8 +234,11 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         }
     }
 
+    /** while a player looks into her bag nothing else may change it, or closing the window would overwrite it */
+    boolean bagOpen(Entity z) { return bags.containsValue(z.getUniqueId()); }
+
     void openBag(Player p, Llama z) {
-        Inventory inv = Bukkit.createInventory(null, Math.max(9, ((items.bagSize(z) + 8) / 9) * 9), Component.text("女仆的背包"));
+        Inventory inv = Bukkit.createInventory(null, Math.max(9, ((items.bagSize(z) + 8) / 9) * 9), Component.text("女仆的背包 · " + work.status(z, p)));
         String b64 = z.getPersistentDataContainer().get(kBag, PersistentDataType.STRING);
         if (b64 != null) {
             ItemStack[] stored = ItemStack.deserializeItemsFromBytes(Base64.getDecoder().decode(b64));

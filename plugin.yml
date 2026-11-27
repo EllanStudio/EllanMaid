@@ -1,9 +1,10 @@
 name: EllanMaid
-version: 0.6.0
+version: 0.7.0
 main: studio.ellan.maid.EllanMaid
 api-version: '26.1.2'
 folia-supported: true
 depend: [ModelEngine, CraftEngine]
+softdepend: [CustomCrops, CustomFishing, MythicMobs, SparrowSync]
 description: Touhou Little Maid style maids for Paper, built on ModelEngine and CraftEngine (EllanStudio)
 commands:
   ellanmaid:

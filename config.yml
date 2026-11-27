@@ -4,7 +4,54 @@ runtime-dir: plugins/EllanMaid/runtime
 power-per-point: 0.1
 power-max: 5.0
 power-drop-chance: 0.2
+# MythicMobs kills: drop chance of one power point by mob (mobs.<internal name>), by pack, else default
+power-mythic:
+  default: 0.05
+  points: 1
+  packs:
+    alexsmobs: 0.3
+  mobs: {}
 # size of the maid shown on a garage kit (1.0 = life size)
 kit-scale: 0.8
 # multiplier for chess piece size (1.0 = real size of the piece models)
 board-piece-scale: 1.0
+# day boundary of the daily work allowance
+time-zone: Asia/Shanghai
+
+# Jobs. Farming and cooking: home mode (kappa compass), daytime, owner online on this server within owner-range
+# of the work point. Every unit of work costs stamina (refilled only by food in her bag), counts against the
+# owner's daily allowance (shared by all their maids and all servers) and wears her tool.
+work:
+  stamina-max: 100
+  stamina-per-food-point: 2      # bread (5 hunger) = 10 stamina
+  daily-limit: 160               # allowance per owner per day
+  max-working-maids: 2           # per owner at the same time
+  owner-range: 128
+  favor-discount-per-level: 0.1  # cost -10% per favorability level (0-3)
+  cost:
+    harvest: 1                   # per crop
+    cook: 6                      # per dish
+    fish: 4                      # per extra catch
+  tool-wear:
+    harvest: 1
+    fish: 1
+  farm-radius: 6
+  farm-interval-ms: 2000         # one crop every 2 s
+  farm-tools:                    # plus any vanilla hoe
+    - kaleidoscopecookery:sickle
+  cook-seconds: 20               # per dish
+  fish-range: 10
+  fish-chance: 0.10              # +2.5% per favorability level
+  fish-chance-per-level: 0.025
+  fish-groups: [fishing_pack_water, fishing_pack_lava, river, ocean]
+  fish-deny-groups: [golden_star]
+  fish-deny-loot: []
+
+# Following maids become a photo when the owner leaves or changes server, and come back on arrival.
+travel:
+  enabled: true
+  range: 32
+
+# The outfit ticket (change_maid_model) opens the outfit list; picking one uses up the ticket
+wardrobe:
+  consume: true
