@@ -75,6 +75,8 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         pm.registerEvents(fishing, this);
         travel = new Travel(this);
         pm.registerEvents(travel, this);
+        var guide = getCommand("maid");
+        if (guide != null) guide.setExecutor(new Guide(this));
         wardrobe = new Wardrobe(this);
         pm.registerEvents(wardrobe, this);
         if (pm.getPlugin("CustomFishing") != null) try { pm.registerEvents(new CustomFishingHook(fishing), this); } catch (Throwable t) { getLogger().warning("CustomFishing hook off: " + t); }
@@ -206,7 +208,8 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         Location at = e.getClickedBlock().getRelative(e.getBlockFace()).getLocation().add(0.5, 0, 0.5);
         spawnMaid(at, e.getPlayer().getUniqueId(), modelKeys.get(new Random().nextInt(modelKeys.size())));
         if (e.getPlayer().getGameMode() != GameMode.CREATIVE) it.setAmount(it.getAmount() - 1);
-        e.getPlayer().sendMessage("女仆来到了你的身边。");
+        e.getPlayer().sendMessage(Component.text("女仆来到了你的身边。").append(Component.text(" [怎么照顾她？]", net.kyori.adventure.text.format.NamedTextColor.AQUA)
+            .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/maid care"))));
     }
 
     @EventHandler public void onInteractMaid(PlayerInteractEntityEvent e) {

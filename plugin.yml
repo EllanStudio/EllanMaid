@@ -11,6 +11,13 @@ commands:
     description: Maid admin command
     usage: /ellanmaid <give|summon|reload> ...
     permission: ellanmaid.admin
+  maid:
+    description: 女仆玩法说明
+    usage: /maid [summon|care|work|travel|more]
+    aliases: [女仆, nvpu]
+    permission: ellanmaid.guide
 permissions:
+  ellanmaid.guide:
+    default: true
   ellanmaid.admin:
     default: op
