@@ -52,6 +52,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
     Travel travel;
     Wardrobe wardrobe;
     ModelSwitcher switcher;
+    OrdersHook orders;
     PowerHook power;
     final Map<UUID, Integer> gen = new HashMap<>();
 
@@ -84,6 +85,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         pm.registerEvents(wardrobe, this);
         if (pm.getPlugin("CustomFishing") != null) try { pm.registerEvents(new CustomFishingHook(fishing), this); } catch (Throwable t) { getLogger().warning("CustomFishing hook off: " + t); }
         if (pm.getPlugin("MythicMobs") != null) try { power = new PowerHook(this); pm.registerEvents(power, this); } catch (Throwable t) { power = null; getLogger().warning("MythicMobs hook off: " + t); }
+        if (getConfig().getBoolean("power-orders.enabled", false)) { orders = new OrdersHook(this); orders.start(); }
         if (pm.getPlugin("SparrowSync") != null) try { pm.registerEvents(new SyncHook(travel), this); } catch (Throwable t) { getLogger().warning("SparrowSync hook off: " + t); }
         // ModelEngine imports blueprints asynchronously after enable, so read them a bit later
         getServer().getGlobalRegionScheduler().runDelayed(this, t -> {
@@ -309,7 +311,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
             e.setCancelled(true);
             double need = r.has("power") ? r.get("power").getAsDouble() : 0;
             if (items.power(e.getPlayer()) + 1e-9 < need) {
-                e.getPlayer().sendMessage(Msg.pBad(String.format("祭坛需要 %.1f 力量，你只有 %.1f。打怪有概率掉落 P点。", need, items.power(e.getPlayer()))));
+                e.getPlayer().sendMessage(Msg.pBad(String.format("祭坛需要 %.1f 力量，你只有 %.1f。完成限时订单可以得到 P点。", need, items.power(e.getPlayer()))));
                 return;
             }
             items.setPower(e.getPlayer(), items.power(e.getPlayer()) - need);
@@ -439,7 +441,8 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         if (st != null) st.remove();
     }
 
-    @Override public void onDisable() { seats.values().forEach(Entity::remove); seats.clear(); boards.clear(); }
+    @Override public void onDisable() {
+        if (orders != null) orders.stop(); seats.values().forEach(Entity::remove); seats.clear(); boards.clear(); }
 
     // ---------- command ----------
     @Override public boolean onCommand(CommandSender s, Command c, String l, String[] a) {

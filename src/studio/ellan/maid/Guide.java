@@ -23,7 +23,7 @@ final class Guide implements CommandExecutor {
     static final Map<String, List<String>> PAGES = Map.of(
         "summon", List.of(
             "{gold}① 做一座祭坛{text}：工作台合成 —— 上下两排「红色羊毛、石英块、红色羊毛」，中间一排「原木、金块、原木」。",
-            "{gold}② 攒力量{text}：打怪有概率掉 {key}P点{text}，右键吃掉加 0.3~0.9 力量（最多攒 5.0）。",
+            "{gold}② 攒力量{text}：完成限时订单会额外得到 {key}P点{text}，部分特殊生物也会掉落；右键吃掉加 0.3~0.9 力量（最多攒 5.0）。",
             "{gold}③ 召唤{text}：把 {gold}钻石、青金石、金锭、红石、铁锭、煤{text} 各一个扔在祭坛旁边，右键祭坛，花 0.5 力量得到女仆刷怪蛋。",
             "{gold}④{text} 拿刷怪蛋右键地面，一位随机衣服的女仆就会认你为主人。",
             "{muted}祭坛还能用力量合成背包、相机、罗盘、饰品等，材料不对时右键没有反应。"),

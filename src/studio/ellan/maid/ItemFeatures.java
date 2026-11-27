@@ -61,14 +61,7 @@ final class ItemFeatures implements Listener {
         } else setPower(p, cur + add);
     }
 
-    @EventHandler public void onKill(EntityDeathEvent e) {
-        if (!(e.getEntity() instanceof Monster) || e.getEntity().getKiller() == null) return;
-        if (pl.power != null && PowerHook.isMythic(e.getEntity())) return; // MythicMobs kills are handled by PowerHook
-        if (Math.random() < pl.getConfig().getDouble("power-drop-chance", 0.05)) {
-            ItemStack it = pl.ceItem(NS + "power_point");
-            if (it != null) e.getDrops().add(it);
-        }
-    }
+    // vanilla monsters do not drop P点 (user rule 2026-11-27): sources are MythicMobs packs (PowerHook) and timed orders (OrdersHook)
 
     @EventHandler public void onPlayerDeath(PlayerDeathEvent e) {
         if (Boolean.TRUE.equals(e.getEntity().getWorld().getGameRuleValue(GameRule.KEEP_INVENTORY))) return;

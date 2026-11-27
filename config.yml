@@ -3,14 +3,24 @@ runtime-dir: plugins/EllanMaid/runtime
 # power: stored per player, gained from power points, spent at the altar
 power-per-point: 0.1
 power-max: 5.0
-power-drop-chance: 0.2
-# MythicMobs kills: drop chance of one power point by mob (mobs.<internal name>), by pack, else default
+# P点 sources. Vanilla monsters never drop them.
+# MythicMobs kills: drop chance by mob (mobs.<internal name>), by pack, else default (0: vanilla overrides drop nothing)
 power-mythic:
-  default: 0.05
+  default: 0.0
   points: 1
   packs:
     alexsmobs: 0.3
   mobs: {}
+# finished timed orders: the order plugin publishes COMPLETED|nonce|task|player|reward on Redis
+power-orders:
+  enabled: false
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: ''
+  channel: ellan:timedorders:events
+  points: 1
+  chance: 1.0
 # size of the maid shown on a garage kit (1.0 = life size)
 kit-scale: 0.8
 # multiplier for chess piece size (1.0 = real size of the piece models)
