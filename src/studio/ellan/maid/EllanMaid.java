@@ -202,8 +202,10 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         e.getEntities().forEach(this::tryAttach);
         for (Entity en : e.getEntities()) {
             String b64 = en.getPersistentDataContainer().get(kSnacks, PersistentDataType.STRING);
-            if (b64 == null) continue;
-            int n = ItemStack.deserializeItemsFromBytes(Base64.getDecoder().decode(b64)).length;
+            int n;
+            if (b64 != null) n = ItemStack.deserializeItemsFromBytes(Base64.getDecoder().decode(b64)).length;
+            else if (isSnackCabinet(en)) n = 0; // empty cabinet: the snack bones must be hidden as well
+            else continue;
             en.getScheduler().runDelayed(this, t -> snackView(en, n), null, 60L);
         }
     }
@@ -371,6 +373,20 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         p.sendActionBar(Msg.c("零食柜里有 " + list.size() + " 份零食。"));
     }
 
+    static boolean isSnackCabinet(Entity en) {
+        try {
+            var f = net.momirealms.craftengine.bukkit.api.CraftEngineFurniture.getLoadedFurnitureByMetaEntity(en);
+            return f != null && "touhou_little_maid:snack_cabinet".equals(f.id().asString());
+        } catch (Throwable t) { return false; }
+    }
+
+    /** a new cabinet is empty: ModelEngine ignores the blueprint's hidden flag, so hide the snack bones ourselves */
+    @EventHandler public void onSnackPlace(net.momirealms.craftengine.bukkit.api.event.FurniturePlaceEvent e) {
+        if (!"touhou_little_maid:snack_cabinet".equals(e.furniture().id().asString())) return;
+        Entity base = e.furniture().baseEntity();
+        for (long d : new long[]{2L, 20L}) base.getScheduler().runDelayed(this, t -> snackView(base, 0), null, d);
+    }
+
     void snackView(Entity base, int n) {
         ModeledEntity me = ModelEngineAPI.getModeledEntity(base);
         if (me == null) return;
@@ -458,6 +474,13 @@ public final class EllanMaid extends JavaPlugin implements Listener {
                         if (isMaid(z)) { n++; s.sendMessage(w.getName() + " " + z.getLocation().getBlockX() + "," + z.getLocation().getBlockY() + "," + z.getLocation().getBlockZ()
                             + " " + z.getPersistentDataContainer().get(kModel, PersistentDataType.STRING) + " modeled=" + (ModelEngineAPI.getModeledEntity(z) != null)); }
                 s.sendMessage("女仆数量:" + n);
+            }
+            case "why" -> {
+                int n = 0;
+                for (World w : Bukkit.getWorlds())
+                    for (Llama z : w.getEntitiesByClass(Llama.class))
+                        if (isMaid(z)) { n++; s.sendMessage(z.getName() + " @" + z.getLocation().getBlockX() + "," + z.getLocation().getBlockY() + "," + z.getLocation().getBlockZ() + " " + work.why(z)); }
+                if (n == 0) s.sendMessage("没有已加载的女仆。");
             }
             case "give" -> {
                 Player t = a.length > 1 ? Bukkit.getPlayer(a[1]) : (s instanceof Player p ? p : null);

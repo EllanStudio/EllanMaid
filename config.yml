@@ -18,8 +18,8 @@ board-piece-scale: 1.0
 # day boundary of the daily work allowance
 time-zone: Asia/Shanghai
 
-# Jobs. Farming and cooking: home mode (kappa compass), daytime, owner online on this server within owner-range
-# of the work point. Every unit of work costs stamina (refilled only by food in her bag), counts against the
+# Jobs. A following maid works within farm-radius of her owner (when the owner is within follow-work-range of her);
+# a maid with a home (kappa compass) works at her work point in the daytime while the owner is within owner-range. Every unit of work costs stamina (refilled only by food in her bag), counts against the
 # owner's daily allowance (shared by all their maids and all servers) and wears her tool.
 work:
   stamina-max: 100
@@ -27,6 +27,7 @@ work:
   daily-limit: 160               # allowance per owner per day
   max-working-maids: 2           # per owner at the same time
   owner-range: 128
+  follow-work-range: 10
   favor-discount-per-level: 0.1  # cost -10% per favorability level (0-3)
   cost:
     harvest: 1                   # per crop

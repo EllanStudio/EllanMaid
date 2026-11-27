@@ -55,6 +55,7 @@ final class Installer {
                     Set<String> hb = hidden.get(name.substring(0, name.length() - ".bbmodel".length()));
                     if (hb != null) hideGroups(d, hb);
                     if (name.startsWith("tlm_maid_")) addAnimations(d);
+                    if (name.equals("tlm_block_snack_cabinet.bbmodel")) fixInflate(d);
                     write(meDir.resolve(name), gson.toJson(d).getBytes(StandardCharsets.UTF_8)); models++;
                 }
             }
@@ -89,6 +90,22 @@ final class Installer {
         for (JsonElement el : d.getAsJsonArray("groups"))
             if (el.isJsonObject() && el.getAsJsonObject().has("name") && names.contains(el.getAsJsonObject().get("name").getAsString()))
                 el.getAsJsonObject().addProperty("visibility", false);
+    }
+
+    /** cubes wider than a block after inflation: the snack cabinet carries wrong-signed or bogus inflate values (tools/fix_snack_cabinet.py) */
+    static void fixInflate(JsonObject d) {
+        if (!d.has("elements")) return;
+        for (JsonElement el : d.getAsJsonArray("elements")) {
+            JsonObject e = el.getAsJsonObject();
+            if (!e.has("inflate")) continue;
+            double inf = e.get("inflate").getAsDouble();
+            JsonArray f = e.getAsJsonArray("from"), t = e.getAsJsonArray("to");
+            double w = Math.max(t.get(0).getAsDouble() - f.get(0).getAsDouble(), t.get(2).getAsDouble() - f.get(2).getAsDouble());
+            if (w + 2 * inf <= 16.01) continue;
+            double n = Math.abs(inf) < w / 2 ? -Math.abs(inf) : (15.8 - w) / 2;
+            if (w + 2 * n > 16.01) n = (15.8 - w) / 2;
+            e.addProperty("inflate", Math.round(n * 1000) / 1000.0);
+        }
     }
 
     static void fixTextures(JsonObject d) {

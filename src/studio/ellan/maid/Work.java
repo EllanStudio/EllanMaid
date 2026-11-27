@@ -139,15 +139,22 @@ final class Work {
 
     // ---------- main loop, called every 0.5 s from EllanMaid.tick; true while she is busy walking ----------
     boolean tick(Llama z) {
-        if (!pl.life.home(z)) return false;
-        long t = z.getWorld().getTime() % 24000;
-        if (t >= 12000) return false; // work period is the day
-        Location work = pl.life.homePoint(z, 0);
-        if (work == null || !work.getWorld().equals(z.getWorld())) return false;
+        if (z.getPersistentDataContainer().has(pl.kSit, PersistentDataType.BYTE)) return false; // sitting = resting
         Player owner = owner(z);
         finishCooking(z);
-        if (owner == null || !owner.getWorld().equals(z.getWorld())
-            || owner.getLocation().distanceSquared(work) > sq(cfg().getDouble("owner-range", 128))) return false;
+        if (owner == null || !owner.getWorld().equals(z.getWorld())) return false;
+        Location work;
+        if (pl.life.home(z)) {
+            // a maid with a home works at her work point during the day, while the owner is within owner-range
+            if (z.getWorld().getTime() % 24000 >= 12000) return false;
+            work = pl.life.homePoint(z, 0);
+            if (work == null || !work.getWorld().equals(z.getWorld())
+                || owner.getLocation().distanceSquared(work) > sq(cfg().getDouble("owner-range", 128))) return false;
+        } else {
+            // a following maid helps around her owner
+            if (owner.getLocation().distanceSquared(z.getLocation()) > sq(cfg().getDouble("follow-work-range", 10))) return false;
+            work = owner.getLocation();
+        }
         long now = System.currentTimeMillis();
         if (now < nextAction.getOrDefault(z.getUniqueId(), 0L)) return walking(z);
         ItemStack[] bag = pl.items.readBag(z);
@@ -339,6 +346,30 @@ final class Work {
         for (int i = 0; i < bag.length; i++) bag[i] = tmp.getItem(i);
         pl.items.writeBag(z, bag);
         z.getWorld().playSound(z.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4f, 1.6f);
+    }
+
+    /** admin: why a maid is (not) working right now */
+    String why(Llama z) {
+        var pdc = z.getPersistentDataContainer();
+        Player owner = owner(z);
+        StringBuilder s = new StringBuilder();
+        s.append("体力 ").append(stamina(z)).append("/").append(maxStamina());
+        s.append(" 坐下=").append(pdc.has(pl.kSit, PersistentDataType.BYTE)).append(" 看家=").append(pl.life.home(z));
+        if (owner == null) return s.append(" 主人不在线").toString();
+        s.append(" 主人距离=").append(owner.getWorld().equals(z.getWorld()) ? String.format("%.1f", owner.getLocation().distance(z.getLocation())) : "其他世界");
+        s.append(" 今日剩余=").append(left(owner)).append("/").append(dailyLimit());
+        ItemStack[] bag = pl.items.readBag(z);
+        s.append(" 农具=").append(farmTool(bag) >= 0).append(" 空格=").append(free(bag));
+        Location work = pl.life.home(z) ? pl.life.homePoint(z, 0) : owner.getLocation();
+        if (work != null && work.getWorld().equals(z.getWorld())) {
+            Location r = findRipe(work, cfg().getInt("farm-radius", 6));
+            s.append(" 熟作物=").append(r == null ? "无" : r.getBlockX() + "," + r.getBlockY() + "," + r.getBlockZ());
+            Block st = cooking.findStation(work, 4);
+            s.append(" 灶台=").append(st == null ? "无" : Cooking.kind(st) + (Cooking.heated(st) ? "(有火)" : "(没火)"));
+        }
+        if (pl.life.home(z)) s.append(" 时间=").append(z.getWorld().getTime() % 24000 < 12000 ? "白天" : "晚上");
+        if (pl.bagOpen(z)) s.append(" 背包打开中");
+        return s.toString();
     }
 
     String status(Llama z, Player viewer) {
