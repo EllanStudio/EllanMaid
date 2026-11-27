@@ -41,6 +41,6 @@ j = json.load(open(items, encoding='utf-8'))
 c = j['items']['touhou_little_maid:change_maid_model']
 c['data']['item_name'] = '<!i>女仆换装券'
 c['data']['components']['minecraft:max_stack_size'] = 16
-c['data']['lore'] = ['<!i><gray>拿着它右键自己的女仆，挑一件衣服换上', '<!i><gray>换好后用掉一张']
+c['data']['lore'] = ['<!i><#b7afa0>拿着它右键自己的女仆，挑一件衣服换上', '<!i><#8f887c>换好后用掉一张']
 open(items, 'w', encoding='utf-8').write(json.dumps(j, ensure_ascii=False))
 print('renamed change_maid_model')

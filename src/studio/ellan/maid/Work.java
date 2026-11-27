@@ -116,7 +116,7 @@ final class Work {
         Long last = lastNotice.get(z.getUniqueId());
         if (last != null && now - last < 60_000) return;
         lastNotice.put(z.getUniqueId(), now);
-        owner.sendMessage(Component.text("[女仆] " + msg));
+        owner.sendMessage(Msg.p("[女仆] " + msg));
     }
 
     Player owner(Llama z) {

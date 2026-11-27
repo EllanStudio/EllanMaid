@@ -60,18 +60,18 @@ final class Boards {
         if (p.isSneaking()) {
             s.fen = g.initialFen(); s.selected = -1; s.owner = null; s.busy = false;
             render(s, base);
-            p.sendActionBar(Component.text("棋局已重新开始。"));
+            p.sendActionBar(Msg.c("棋局已重新开始。"));
             return true;
         }
         if (s.owner != null && !s.owner.equals(p.getUniqueId())) {
             Player o = Bukkit.getPlayer(s.owner);
             if (o != null && o.getWorld().equals(p.getWorld()) && o.getLocation().distance(base.getLocation()) < 6) {
-                p.sendActionBar(Component.text("这盘棋已经有人在下了。")); return true;
+                p.sendActionBar(Msg.c("这盘棋已经有人在下了。")); return true;
             }
         }
         s.owner = p.getUniqueId();
         if (s.pieces.isEmpty() && !g.pieces(s.fen).isEmpty()) render(s, base);
-        if (s.busy) { p.sendActionBar(Component.text("女仆正在思考……")); return true; }
+        if (s.busy) { p.sendActionBar(Msg.c("女仆正在思考……")); return true; }
         Location hit = e.interactionPoint();
         if (hit == null) return true;
         double yaw = Math.toRadians(base.getLocation().getYaw());
@@ -89,9 +89,9 @@ final class Boards {
                 s.selected = -1;
                 s.fen = r.move().fenAfter();
                 render(s, base);
-                if (r.move().mate()) { p.sendMessage(Component.text("你赢了!")); finish(s); return true; }
-                if (r.move().check()) p.sendActionBar(Component.text("将军!"));
-                if (g.isDraw(s.fen)) { p.sendMessage(Component.text("和棋。")); finish(s); return true; }
+                if (r.move().mate()) { p.sendMessage(Msg.p("你赢了!")); finish(s); return true; }
+                if (r.move().check()) p.sendActionBar(Msg.c("将军!"));
+                if (g.isDraw(s.fen)) { p.sendMessage(Msg.p("和棋。")); finish(s); return true; }
                 reply(s, base, p);
             }
             default -> { }
@@ -110,11 +110,11 @@ final class Boards {
             final BoardGame.Move mv = m;
             Bukkit.getGlobalRegionScheduler().run(pl, u -> {
                 s.busy = false;
-                if (mv == null) { p.sendMessage(Component.text("女仆无子可走,你赢了!")); finish(s); return; }
+                if (mv == null) { p.sendMessage(Msg.p("女仆无子可走,你赢了!")); finish(s); return; }
                 s.fen = mv.fenAfter();
                 render(s, base);
-                if (mv.mate()) { p.sendMessage(Component.text("女仆赢了。")); finish(s); }
-                else if (mv.check()) p.sendActionBar(Component.text("你被将军了!"));
+                if (mv.mate()) { p.sendMessage(Msg.p("女仆赢了。")); finish(s); }
+                else if (mv.check()) p.sendActionBar(Msg.c("你被将军了!"));
             });
         });
     }

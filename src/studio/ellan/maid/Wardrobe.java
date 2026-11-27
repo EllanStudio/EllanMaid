@@ -48,7 +48,7 @@ final class Wardrobe implements Listener {
             ItemStack it = new ItemStack(k.equals(cur) ? Material.LIME_DYE : Material.NAME_TAG);
             ItemMeta m = it.getItemMeta();
             m.displayName(Component.text(pl.modelNames.getOrDefault(k, k)).decoration(TextDecoration.ITALIC, false));
-            if (k.equals(cur)) m.lore(List.of(Component.text("正在穿着", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            if (k.equals(cur)) m.lore(List.of(Msg.lore("{good}正在穿着")));
             it.setItemMeta(m);
             inv.setItem(i, it);
         }
@@ -81,7 +81,7 @@ final class Wardrobe implements Listener {
         String next = pl.modelKeys.get(idx);
         if (next.equals(z.getPersistentDataContainer().get(pl.kModel, PersistentDataType.STRING))) return;
         if (pl.getConfig().getBoolean("wardrobe.consume", true) && p.getGameMode() != GameMode.CREATIVE && !takeTicket(p)) {
-            p.sendActionBar(Component.text("你身上没有换装券了。"));
+            p.sendActionBar(Msg.bad("你身上没有换装券了。"));
             p.closeInventory();
             return;
         }
@@ -90,7 +90,7 @@ final class Wardrobe implements Listener {
         pl.attach(z);
         p.closeInventory();
         p.playSound(p.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1f, 1.2f);
-        p.sendMessage(Component.text("换上了新的衣服：" + pl.modelNames.getOrDefault(next, next)));
+        p.sendMessage(Msg.p("换上了新的衣服：" + pl.modelNames.getOrDefault(next, next)));
     }
 
     boolean takeTicket(Player p) {

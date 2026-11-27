@@ -52,7 +52,7 @@ class Fishing implements Listener {
         ItemStack[] bag = pl.items.readBag(z);
         int i = rod(bag);
         if (i < 0) return false;
-        if (!ItemFeatures.damage(bag[i], cfg().getInt("tool-wear.fish", 1))) { bag[i] = null; p.sendMessage(Component.text("[女仆] 女仆的鱼竿用坏了。")); }
+        if (!ItemFeatures.damage(bag[i], cfg().getInt("tool-wear.fish", 1))) { bag[i] = null; p.sendMessage(Msg.pBad("[女仆] 女仆的鱼竿用坏了。")); }
         pl.items.writeBag(z, bag);
         return true;
     }
@@ -62,7 +62,7 @@ class Fishing implements Listener {
         z.swingMainHand();
         z.getWorld().spawnParticle(Particle.SPLASH, z.getLocation().add(0, 1, 0), 12, 0.3, 0.3, 0.3, 0.1);
         z.getWorld().playSound(z.getLocation(), Sound.ENTITY_FISHING_BOBBER_RETRIEVE, 0.8f, 1.2f);
-        p.sendActionBar(Component.text("女仆帮你多钓上了一条！"));
+        p.sendActionBar(Msg.c("女仆帮你多钓上了一条！"));
     }
 
     static final Set<Material> VANILLA_FISH = EnumSet.of(Material.COD, Material.SALMON, Material.TROPICAL_FISH, Material.PUFFERFISH);

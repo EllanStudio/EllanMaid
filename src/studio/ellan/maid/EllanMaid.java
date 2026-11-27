@@ -51,6 +51,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
     Fishing fishing;
     Travel travel;
     Wardrobe wardrobe;
+    ModelSwitcher switcher;
     PowerHook power;
     final Map<UUID, Integer> gen = new HashMap<>();
 
@@ -77,6 +78,8 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         pm.registerEvents(travel, this);
         var guide = getCommand("maid");
         if (guide != null) guide.setExecutor(new Guide(this));
+        switcher = new ModelSwitcher(this);
+        pm.registerEvents(switcher, this);
         wardrobe = new Wardrobe(this);
         pm.registerEvents(wardrobe, this);
         if (pm.getPlugin("CustomFishing") != null) try { pm.registerEvents(new CustomFishingHook(fishing), this); } catch (Throwable t) { getLogger().warning("CustomFishing hook off: " + t); }
@@ -212,11 +215,11 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         ItemStack it = e.getItem();
         if (!EGG.equals(ceId(it))) return;
         e.setCancelled(true);
-        if (modelKeys.isEmpty()) { e.getPlayer().sendMessage("暂时没有可用的女仆模型。"); return; }
+        if (modelKeys.isEmpty()) { e.getPlayer().sendMessage(Msg.pBad("暂时没有可用的女仆模型。")); return; }
         Location at = e.getClickedBlock().getRelative(e.getBlockFace()).getLocation().add(0.5, 0, 0.5);
         spawnMaid(at, e.getPlayer().getUniqueId(), modelKeys.get(new Random().nextInt(modelKeys.size())));
         if (e.getPlayer().getGameMode() != GameMode.CREATIVE) it.setAmount(it.getAmount() - 1);
-        e.getPlayer().sendMessage(Component.text("女仆来到了你的身边。").append(Component.text(" [怎么照顾她？]", net.kyori.adventure.text.format.NamedTextColor.AQUA)
+        e.getPlayer().sendMessage(Msg.p("女仆来到了你的身边。").append(Msg.c(" {key}[怎么照顾她？]")
             .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/maid care"))));
     }
 
@@ -229,7 +232,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         ItemStack hand = p.getInventory().getItemInMainHand();
         if (!p.getUniqueId().toString().equals(pdc.get(kOwner, PersistentDataType.STRING))) {
             if (items.onForeignMaid(p, z, hand)) return;
-            p.sendMessage("这不是你的女仆。");
+            p.sendMessage(Msg.pBad("这不是你的女仆。"));
             return;
         }
         if (items.onMaid(p, z, hand)) return;
@@ -239,7 +242,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         } else if (p.isSneaking()) {
             boolean sit = pdc.has(kSit, PersistentDataType.BYTE);
             if (sit) pdc.remove(kSit); else pdc.set(kSit, PersistentDataType.BYTE, (byte) 1);
-            p.sendActionBar(Component.text(sit ? "女仆站了起来。" : "女仆坐下休息。"));
+            p.sendActionBar(Msg.c(sit ? "女仆站了起来。" : "女仆坐下休息。"));
         } else {
             openBag(p, z);
         }
@@ -304,7 +307,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
             e.setCancelled(true);
             double need = r.has("power") ? r.get("power").getAsDouble() : 0;
             if (items.power(e.getPlayer()) + 1e-9 < need) {
-                e.getPlayer().sendMessage(Component.text(String.format("祭坛需要 %.1f 的力量,你只有 %.1f。击杀怪物会掉落力量点。", need, items.power(e.getPlayer()))));
+                e.getPlayer().sendMessage(Msg.pBad(String.format("祭坛需要 %.1f 的力量,你只有 %.1f。击杀怪物会掉落力量点。", need, items.power(e.getPlayer()))));
                 return;
             }
             items.setPower(e.getPlayer(), items.power(e.getPlayer()) - need);
@@ -326,7 +329,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
                 ItemStack it = ceItem(res);
                 if (it != null) at.getWorld().dropItemNaturally(out, it);
             }
-            e.getPlayer().sendMessage("祭坛亮起了光。");
+            e.getPlayer().sendMessage(Msg.p("祭坛亮起了光。"));
             return;
         }
     }
@@ -353,19 +356,19 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         if (b64 != null) list.addAll(Arrays.asList(ItemStack.deserializeItemsFromBytes(Base64.getDecoder().decode(b64))));
         ItemStack hand = p.getInventory().getItemInMainHand();
         if (isFood(hand)) {
-            if (list.size() >= SNACK_MAX) { p.sendActionBar(Component.text("零食柜满了。")); return; }
+            if (list.size() >= SNACK_MAX) { p.sendActionBar(Msg.bad("零食柜满了。")); return; }
             ItemStack one = hand.clone(); one.setAmount(1);
             list.add(one);
             if (p.getGameMode() != GameMode.CREATIVE) hand.setAmount(hand.getAmount() - 1);
         } else if (hand.getType().isAir() && !list.isEmpty()) {
             p.getInventory().addItem(list.remove(list.size() - 1)).values().forEach(r -> p.getWorld().dropItemNaturally(p.getLocation(), r));
         } else {
-            p.sendActionBar(Component.text("零食柜里有 " + list.size() + " 份零食。"));
+            p.sendActionBar(Msg.c("零食柜里有 " + list.size() + " 份零食。"));
             return;
         }
         pdc.set(kSnacks, PersistentDataType.STRING, Base64.getEncoder().encodeToString(ItemStack.serializeItemsAsBytes(list)));
         snackView(base, list.size());
-        p.sendActionBar(Component.text("零食柜里有 " + list.size() + " 份零食。"));
+        p.sendActionBar(Msg.c("零食柜里有 " + list.size() + " 份零食。"));
     }
 
     void snackView(Entity base, int n) {
@@ -384,7 +387,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         if (beds.contains(id)) {
             e.setCancelled(true);
             p.setRespawnLocation(e.furniture().location(), true);
-            p.sendActionBar(Component.text("已把这张床设为重生点。"));
+            p.sendActionBar(Msg.c("已把这张床设为重生点。"));
             return;
         }
         JsonObject c = chairs.get(id);
@@ -394,7 +397,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         Location at = e.furniture().location().clone();
         for (Entity n : at.getWorld().getNearbyEntities(at, 0.6, 1.5, 0.6))
             if (n instanceof ArmorStand st && st.getPersistentDataContainer().has(kSeat, PersistentDataType.BYTE) && !st.getPassengers().isEmpty()) {
-                p.sendActionBar(Component.text("这里已经有人坐了。"));
+                p.sendActionBar(Msg.c("这里已经有人坐了。"));
                 return;
             }
         double h = c.has("height") ? c.get("height").getAsDouble() : 0;

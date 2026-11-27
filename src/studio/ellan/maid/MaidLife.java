@@ -308,7 +308,7 @@ final class MaidLife implements Listener {
         String owner = z.getPersistentDataContainer().get(pl.kOwner, PersistentDataType.STRING);
         try {
             Player op = Bukkit.getPlayer(UUID.fromString(owner));
-            if (op != null) op.sendMessage(Component.text("你的女仆倒下了,墓碑在 " + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ() + "。墓碑里有她的物品和一张胶片,拿胶片到祭坛或神龛可以让她回来。"));
+            if (op != null) op.sendMessage(Msg.p("你的女仆倒下了,墓碑在 " + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ() + "。墓碑里有她的物品和一张胶片,拿胶片到祭坛或神龛可以让她回来。"));
         } catch (Exception ignored) { }
     }
 
@@ -333,7 +333,7 @@ final class MaidLife implements Listener {
         Player p = e.getPlayer();
         boolean owner = p.getUniqueId().toString().equals(pdc.get(pl.kOwner, PersistentDataType.STRING));
         boolean ntr = (NS + "owner_conversion_tool").equals(EllanMaid.ceId(p.getInventory().getItemInMainHand()));
-        if (!owner && !ntr) { p.sendActionBar(Component.text("这不是你的女仆的墓碑。")); return; }
+        if (!owner && !ntr) { p.sendActionBar(Msg.bad("这不是你的女仆的墓碑。")); return; }
         List<ItemStack> out = new ArrayList<>();
         String bag = pdc.get(pl.kBag, PersistentDataType.STRING);
         if (bag != null && !bag.isEmpty()) for (ItemStack s : ItemStack.deserializeItemsFromBytes(Base64.getDecoder().decode(bag))) if (s != null) out.add(s);
@@ -343,7 +343,7 @@ final class MaidLife implements Listener {
         var me = ModelEngineAPI.getModeledEntity(t);
         if (me != null) me.destroy();
         t.remove();
-        p.sendActionBar(Component.text("取回了女仆留下的东西。"));
+        p.sendActionBar(Msg.c("取回了女仆留下的东西。"));
     }
 
     // ---------- shrine: a film brings the maid back ----------
@@ -356,7 +356,7 @@ final class MaidLife implements Listener {
         if (reviveFromFilm(hand, e.furniture().location().clone().add(0, 1.2, 0), p)) {
             hand.setAmount(hand.getAmount() - 1);
             p.getWorld().playSound(e.furniture().location(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1.4f);
-        } else p.sendActionBar(Component.text("这张胶片里没有女仆的记录。"));
+        } else p.sendActionBar(Msg.bad("这张胶片里没有女仆的记录。"));
     }
 
     // ---------- statue (from chisel) and garage kit ----------
@@ -437,7 +437,7 @@ final class MaidLife implements Listener {
         Entity base = e.furniture().baseEntity();
         if (!base.getPersistentDataContainer().has(kKit, PersistentDataType.BYTE)) return;
         e.setCancelled(true);
-        e.getPlayer().sendActionBar(Component.text("这是一座手办,只能摆着看。"));
+        e.getPlayer().sendActionBar(Msg.c("这是一座手办,只能摆着看。"));
     }
 
     @EventHandler public void onKitBreak(FurnitureBreakEvent e) {
@@ -483,15 +483,15 @@ final class MaidLife implements Listener {
         double store = d.getOrDefault(kBeaconPower, PersistentDataType.DOUBLE, 0.0);
         if (p.isSneaking()) {
             double move = Math.min(Math.min(0.5, pl.items.power(p)), 100 - store);
-            if (move <= 0) { p.sendActionBar(Component.text("你没有力量可以存入。")); return; }
+            if (move <= 0) { p.sendActionBar(Msg.bad("你没有力量可以存入。")); return; }
             pl.items.setPower(p, pl.items.power(p) - move);
             d.set(kBeaconPower, PersistentDataType.DOUBLE, store + move);
-            p.sendActionBar(Component.text(String.format("已存入 %.2f,神灯里有 %.2f 的力量。", move, store + move)));
+            p.sendActionBar(Msg.c(String.format("已存入 %.2f,神灯里有 %.2f 的力量。", move, store + move)));
         } else {
             int idx = d.getOrDefault(kBeaconPotion, PersistentDataType.INTEGER, -1) + 1;
             if (idx >= BEACON.length) idx = -1;
             d.set(kBeaconPotion, PersistentDataType.INTEGER, idx);
-            p.sendActionBar(Component.text(idx < 0 ? "效果:无" : "效果:" + BEACON_NAME[idx] + "(潜行右击存入力量)"));
+            p.sendActionBar(Msg.c(idx < 0 ? "效果:无" : "效果:" + BEACON_NAME[idx] + "(潜行右击存入力量)"));
         }
     }
 

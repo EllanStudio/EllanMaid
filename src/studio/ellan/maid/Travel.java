@@ -85,6 +85,6 @@ final class Travel implements Listener {
             Double hp = d.get(pl.life.kHp, PersistentDataType.DOUBLE);
             if (hp != null) m.setHealth(Math.max(1, Math.min(hp, m.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue())));
         }
-        if (!found.isEmpty()) p.sendActionBar(Component.text(found.size() == 1 ? "女仆跟着你来了。" : found.size() + " 位女仆跟着你来了。"));
+        if (!found.isEmpty()) p.sendActionBar(Msg.c(found.size() == 1 ? "女仆跟着你来了。" : found.size() + " 位女仆跟着你来了。"));
     }
 }

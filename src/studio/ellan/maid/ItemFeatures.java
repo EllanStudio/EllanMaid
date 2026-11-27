@@ -93,7 +93,7 @@ final class ItemFeatures implements Listener {
                 addPower(p, total);
                 if (p.getGameMode() != GameMode.CREATIVE) it.setAmount(it.getAmount() - 1);
                 p.getWorld().playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_BOTTLE_THROW, 0.5f, 1.2f);
-                p.sendActionBar(Component.text(String.format("力量 +%d P,共 %.2f / %.1f", total, power(p), POWER_MAX)));
+                p.sendActionBar(Msg.c(String.format("力量 +%d P,共 %.2f / %.1f", total, power(p), POWER_MAX)));
             }
             case "trumpet" -> {
                 e.setCancelled(true);
@@ -102,21 +102,21 @@ final class ItemFeatures implements Listener {
                 int n = 0;
                 for (Llama m : ownedMaids(p)) { pl.life.setHome(m, false); m.teleportAsync(scatter(p.getLocation())); n++; }
                 p.getWorld().playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
-                p.sendActionBar(Component.text(n == 0 ? "附近没有你的女仆。" : "号声响起," + n + " 位女仆赶到你身边。"));
+                p.sendActionBar(Msg.bad(n == 0 ? "附近没有你的女仆。" : "号声响起," + n + " 位女仆赶到你身边。"));
             }
             case "servant_bell" -> {
                 e.setCancelled(true);
                 if (p.hasCooldown(it)) return;
                 p.setCooldown(it, 20);
                 String uuid = it.getItemMeta().getPersistentDataContainer().get(kBell, PersistentDataType.STRING);
-                if (uuid == null) { p.sendActionBar(Component.text("铃铛还没有绑定女仆。对女仆右击来绑定。")); return; }
+                if (uuid == null) { p.sendActionBar(Msg.bad("铃铛还没有绑定女仆。对女仆右击来绑定。")); return; }
                 Entity m = Bukkit.getEntity(UUID.fromString(uuid));
                 if (m instanceof Llama l && pl.isMaid(l)) {
                     pl.life.setHome(l, false);
                     l.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 200, 1, true, false));
                     l.teleportAsync(scatter(p.getLocation()));
                     p.getWorld().playSound(p.getLocation(), Sound.BLOCK_BELL_USE, 2f, 1f);
-                } else p.sendActionBar(Component.text("找不到这位女仆,她可能不在已加载的区域里。"));
+                } else p.sendActionBar(Msg.bad("找不到这位女仆,她可能不在已加载的区域里。"));
             }
             case "kappa_compass" -> {
                 e.setCancelled(true);
@@ -125,21 +125,21 @@ final class ItemFeatures implements Listener {
             }
             case "red_fox_scroll" -> {
                 e.setCancelled(true);
-                p.sendMessage(Component.text("—— 你的女仆 ——"));
+                p.sendMessage(Msg.p("—— 你的女仆 ——"));
                 int n = 0;
                 for (World w : Bukkit.getWorlds()) for (Llama m : w.getEntitiesByClass(Llama.class))
                     if (pl.isMaid(m) && owns(p, m)) { n++; where(p, m.customName() == null ? "女仆" : plain(m), m.getLocation()); }
-                if (n == 0) p.sendMessage(Component.text("没有已加载的女仆。"));
+                if (n == 0) p.sendMessage(Msg.pBad("没有已加载的女仆。"));
             }
             case "white_fox_scroll" -> {
                 e.setCancelled(true);
-                p.sendMessage(Component.text("—— 你的女仆的墓碑 ——"));
+                p.sendMessage(Msg.p("—— 你的女仆的墓碑 ——"));
                 int n = 0;
                 for (World w : Bukkit.getWorlds()) for (Interaction t : w.getEntitiesByClass(Interaction.class))
                     if (t.getPersistentDataContainer().has(pl.life.kTomb, PersistentDataType.BYTE) && owns(p, t)) { n++; where(p, "墓碑", t.getLocation()); }
-                if (n == 0) p.sendMessage(Component.text("没有已加载的墓碑。"));
+                if (n == 0) p.sendMessage(Msg.pBad("没有已加载的墓碑。"));
             }
-            case "extinguisher" -> { e.setCancelled(true); p.sendActionBar(Component.text("你不知道该怎么使用这个。")); }
+            case "extinguisher" -> { e.setCancelled(true); p.sendActionBar(Msg.bad("你不知道该怎么使用这个。")); }
             case "wireless_io" -> {
                 e.setCancelled(true);
                 ItemMeta m = it.getItemMeta();
@@ -148,12 +148,12 @@ final class ItemFeatures implements Listener {
                     Block b = e.getClickedBlock();
                     d.set(kIoPos, PersistentDataType.STRING, b.getWorld().getName() + "|" + b.getX() + "|" + b.getY() + "|" + b.getZ());
                     it.setItemMeta(m);
-                    p.sendActionBar(Component.text("已绑定这个箱子。"));
+                    p.sendActionBar(Msg.c("已绑定这个箱子。"));
                 } else {
                     boolean toChest = d.getOrDefault(kIoMode, PersistentDataType.BYTE, (byte) 0) == 0;
                     d.set(kIoMode, PersistentDataType.BYTE, (byte) (toChest ? 1 : 0));
                     it.setItemMeta(m);
-                    p.sendActionBar(Component.text(toChest ? "模式:箱子 → 女仆" : "模式:女仆 → 箱子"));
+                    p.sendActionBar(Msg.c(toChest ? "模式:箱子 → 女仆" : "模式:女仆 → 箱子"));
                 }
             }
             case "chisel" -> {
@@ -164,11 +164,11 @@ final class ItemFeatures implements Listener {
             case "photo" -> {
                 if (a != Action.RIGHT_CLICK_BLOCK) return;
                 e.setCancelled(true);
-                if (e.getBlockFace() != org.bukkit.block.BlockFace.UP) { p.sendActionBar(Component.text("这里不适合放置女仆。")); return; }
+                if (e.getBlockFace() != org.bukkit.block.BlockFace.UP) { p.sendActionBar(Msg.bad("这里不适合放置女仆。")); return; }
                 var d = it.getItemMeta().getPersistentDataContainer();
                 String model = d.get(pl.kModel, PersistentDataType.STRING);
-                if (model == null) { p.sendActionBar(Component.text("这张照片里没有女仆。")); return; }
-                if (!p.getUniqueId().toString().equals(d.get(pl.kOwner, PersistentDataType.STRING))) { p.sendActionBar(Component.text("这不是你的女仆。")); return; }
+                if (model == null) { p.sendActionBar(Msg.bad("这张照片里没有女仆。")); return; }
+                if (!p.getUniqueId().toString().equals(d.get(pl.kOwner, PersistentDataType.STRING))) { p.sendActionBar(Msg.bad("这不是你的女仆。")); return; }
                 Location at = e.getClickedBlock().getRelative(org.bukkit.block.BlockFace.UP).getLocation().add(0.5, 0, 0.5);
                 Llama m = pl.spawnMaid(at, p.getUniqueId(), model);
                 MaidLife.copy(d, m.getPersistentDataContainer(), pl);
@@ -197,7 +197,7 @@ final class ItemFeatures implements Listener {
 
     void where(Player p, String label, Location l) {
         String xyz = l.getBlockX() + " " + l.getBlockY() + " " + l.getBlockZ();
-        p.sendMessage(Component.text(" " + label + "  " + l.getWorld().getName() + " " + xyz + "  [点击复制坐标]").clickEvent(ClickEvent.copyToClipboard(xyz)));
+        p.sendMessage(Msg.p(" " + label + "  " + l.getWorld().getName() + " " + xyz + "  [点击复制坐标]").clickEvent(ClickEvent.copyToClipboard(xyz)));
     }
 
     boolean owns(Player p, Entity e) { return p.getUniqueId().toString().equals(e.getPersistentDataContainer().get(pl.kOwner, PersistentDataType.STRING)); }
@@ -217,29 +217,29 @@ final class ItemFeatures implements Listener {
     void compassBlock(Player p, ItemStack it, Block b) {
         ItemMeta m = it.getItemMeta();
         var d = m.getPersistentDataContainer();
-        if (p.isSneaking()) { d.remove(kCompass); it.setItemMeta(m); p.sendActionBar(Component.text("已清除记录。")); return; }
+        if (p.isSneaking()) { d.remove(kCompass); it.setItemMeta(m); p.sendActionBar(Msg.c("已清除记录。")); return; }
         String[] pts = compassData(it);
-        if (pts.length >= 3) { p.sendActionBar(Component.text("三个位置都记录好了。潜行右击方块可以清除。")); return; }
+        if (pts.length >= 3) { p.sendActionBar(Msg.c("三个位置都记录好了。潜行右击方块可以清除。")); return; }
         String cur = b.getWorld().getName() + "|" + b.getX() + "|" + (b.getY() + 1) + "|" + b.getZ();
         if (pts.length > 0) {
             String[] prev = pts[pts.length - 1].split("\\|");
-            if (!prev[0].equals(b.getWorld().getName())) { p.sendActionBar(Component.text("不能跨维度记录。")); return; }
+            if (!prev[0].equals(b.getWorld().getName())) { p.sendActionBar(Msg.bad("不能跨维度记录。")); return; }
             double dx = Double.parseDouble(prev[1]) - b.getX(), dy = Double.parseDouble(prev[2]) - b.getY(), dz = Double.parseDouble(prev[3]) - b.getZ();
-            if (dx * dx + dy * dy + dz * dz > 64 * 64) { p.sendActionBar(Component.text("距离上一个位置太远了。")); return; }
+            if (dx * dx + dy * dy + dz * dz > 64 * 64) { p.sendActionBar(Msg.bad("距离上一个位置太远了。")); return; }
         }
         String next = pts.length == 0 ? cur : String.join(";", pts) + ";" + cur;
         d.set(kCompass, PersistentDataType.STRING, next);
         it.setItemMeta(m);
         p.getWorld().playSound(p.getLocation(), Sound.ITEM_LODESTONE_COMPASS_LOCK, 0.8f, 1.5f);
-        p.sendActionBar(Component.text(new String[]{"已记录工作位置。", "已记录休闲位置。", "已记录睡觉位置。"}[pts.length]));
+        p.sendActionBar(Msg.c(new String[]{"已记录工作位置。", "已记录休闲位置。", "已记录睡觉位置。"}[pts.length]));
     }
 
     // ---------- chisel: photo (off hand) + clay -> tiny statue; fire below turns it into a garage kit ----------
     void chisel(Player p, ItemStack chisel, Block clay) {
         ItemStack photo = p.getInventory().getItemInOffHand();
-        if (!(NS + "photo").equals(EllanMaid.ceId(photo))) { p.sendActionBar(Component.text("请把照片拿在副手。")); return; }
+        if (!(NS + "photo").equals(EllanMaid.ceId(photo))) { p.sendActionBar(Msg.c("请把照片拿在副手。")); return; }
         var d = photo.getItemMeta().getPersistentDataContainer();
-        if (!d.has(pl.kModel, PersistentDataType.STRING)) { p.sendActionBar(Component.text("这张照片里没有女仆。")); return; }
+        if (!d.has(pl.kModel, PersistentDataType.STRING)) { p.sendActionBar(Msg.bad("这张照片里没有女仆。")); return; }
         Location top = clay.getLocation().add(0.5, 1, 0.5);
         Interaction st = clay.getWorld().spawn(top, Interaction.class, i -> {
             i.setInteractionWidth(0.5f); i.setInteractionHeight(0.8f); i.setPersistent(true);
@@ -249,7 +249,7 @@ final class ItemFeatures implements Listener {
         pl.life.attachStatue(st);
         damage(chisel, 1);
         p.getWorld().playSound(clay.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.5f);
-        p.sendActionBar(Component.text("雕出了一座小雕像。在黏土块下面点一把火,就能烧成手办。"));
+        p.sendActionBar(Msg.c("雕出了一座小雕像。在黏土块下面点一把火,就能烧成手办。"));
     }
 
     /** durability by 'amount'; returns false when the item broke */
@@ -285,7 +285,7 @@ final class ItemFeatures implements Listener {
         pl.life.setHome(z, false);
         if (p.getGameMode() != GameMode.CREATIVE) hand.setAmount(hand.getAmount() - 1);
         p.getWorld().playSound(z.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
-        p.sendActionBar(Component.text("这位女仆现在是你的了。"));
+        p.sendActionBar(Msg.c("这位女仆现在是你的了。"));
         return true;
     }
 
@@ -295,15 +295,16 @@ final class ItemFeatures implements Listener {
         if (id == null || !id.startsWith(NS)) return false;
         var pdc = z.getPersistentDataContainer();
         switch (id.substring(NS.length())) {
-            case "favorability_tool_add" -> { pl.life.addFav(z, p.isSneaking() ? 1 : 64); toolSound(p); p.sendActionBar(Component.text("好感度 " + pl.life.fav(z))); return true; }
-            case "favorability_tool_reduce" -> { pl.life.addFav(z, p.isSneaking() ? -1 : -64); toolSound(p); p.sendActionBar(Component.text("好感度 " + pl.life.fav(z))); return true; }
-            case "favorability_tool_full" -> { pl.life.addFav(z, 384); toolSound(p); p.sendActionBar(Component.text("好感度已满。")); return true; }
+            case "model_switcher" -> { return pl.switcher.bind(p, z, hand); }
+            case "favorability_tool_add" -> { pl.life.addFav(z, p.isSneaking() ? 1 : 64); toolSound(p); p.sendActionBar(Msg.c("好感度 " + pl.life.fav(z))); return true; }
+            case "favorability_tool_reduce" -> { pl.life.addFav(z, p.isSneaking() ? -1 : -64); toolSound(p); p.sendActionBar(Msg.c("好感度 " + pl.life.fav(z))); return true; }
+            case "favorability_tool_full" -> { pl.life.addFav(z, 384); toolSound(p); p.sendActionBar(Msg.c("好感度已满。")); return true; }
             case "maid_backpack_small", "maid_backpack_middle", "maid_backpack_big" -> {
                 String kind = id.substring((NS + "maid_backpack_").length());
-                if (rank(kind) <= rank(pdc.getOrDefault(kBack, PersistentDataType.STRING, ""))) { p.sendActionBar(Component.text("她已经背着更大的背包了。")); return true; }
+                if (rank(kind) <= rank(pdc.getOrDefault(kBack, PersistentDataType.STRING, ""))) { p.sendActionBar(Msg.bad("她已经背着更大的背包了。")); return true; }
                 pdc.set(kBack, PersistentDataType.STRING, kind);
                 if (p.getGameMode() != GameMode.CREATIVE) hand.setAmount(hand.getAmount() - 1);
-                p.sendActionBar(Component.text("背包容量变成了 " + bagSize(z) + " 格。")); return true;
+                p.sendActionBar(Msg.c("背包容量变成了 " + bagSize(z) + " 格。")); return true;
             }
             case "camera" -> {
                 if (p.hasCooldown(hand)) return true;
@@ -318,19 +319,19 @@ final class ItemFeatures implements Listener {
                 return true;
             }
             case "substitute_jizo" -> {
-                if (z.isInvulnerable()) { p.sendActionBar(Component.text("她已经是无敌的了。")); return true; }
+                if (z.isInvulnerable()) { p.sendActionBar(Msg.c("她已经是无敌的了。")); return true; }
                 z.setInvulnerable(true);
                 hand.setAmount(hand.getAmount() - 1);
                 z.getWorld().spawnParticle(Particle.PORTAL, z.getLocation().add(0, 1, 0), 40, 0.4, 0.6, 0.4, 0.3);
-                p.sendActionBar(Component.text("替身地藏守护着她。")); return true;
+                p.sendActionBar(Msg.c("替身地藏守护着她。")); return true;
             }
             case "kappa_compass" -> {
-                if (p.isSneaking()) { pl.life.clearHome(z); p.sendActionBar(Component.text("已清除女仆的位置记录。")); return true; }
+                if (p.isSneaking()) { pl.life.clearHome(z); p.sendActionBar(Msg.c("已清除女仆的位置记录。")); return true; }
                 String[] pts = compassData(hand);
-                if (pts.length == 0) { p.sendActionBar(Component.text("罗盘里还没有记录位置。")); return true; }
-                if (!pts[0].startsWith(z.getWorld().getName() + "|")) { p.sendActionBar(Component.text("罗盘记录的是另一个世界。")); return true; }
+                if (pts.length == 0) { p.sendActionBar(Msg.bad("罗盘里还没有记录位置。")); return true; }
+                if (!pts[0].startsWith(z.getWorld().getName() + "|")) { p.sendActionBar(Msg.c("罗盘记录的是另一个世界。")); return true; }
                 pl.life.writeHome(z, pts);
-                p.sendActionBar(Component.text("女仆记住了这些位置,会待在家里。"));
+                p.sendActionBar(Msg.c("女仆记住了这些位置,会待在家里。"));
                 return true;
             }
             case "servant_bell" -> {
@@ -338,7 +339,7 @@ final class ItemFeatures implements Listener {
                 m.getPersistentDataContainer().set(kBell, PersistentDataType.STRING, z.getUniqueId().toString());
                 m.displayName(Component.text(z.customName() == null ? "仆人铃" : plain(z)));
                 hand.setItemMeta(m);
-                p.sendActionBar(Component.text("铃铛绑定了这位女仆。"));
+                p.sendActionBar(Msg.c("铃铛绑定了这位女仆。"));
                 return true;
             }
             case "smart_slab_empty", "smart_slab_init" -> {
@@ -354,7 +355,7 @@ final class ItemFeatures implements Listener {
                 pl.life.discard(z);
                 hand.setAmount(hand.getAmount() - 1);
                 p.getInventory().addItem(slab).values().forEach(r -> p.getWorld().dropItemNaturally(p.getLocation(), r));
-                p.sendActionBar(Component.text("女仆被收进了智能石板。"));
+                p.sendActionBar(Msg.c("女仆被收进了智能石板。"));
                 return true;
             }
             default -> { return false; }
@@ -368,13 +369,13 @@ final class ItemFeatures implements Listener {
         if (!(NS + "entity_id_copy").equals(EllanMaid.ceId(e.getPlayer().getInventory().getItemInMainHand()))) return;
         e.setCancelled(true);
         String key = e.getRightClicked().getType().getKey().toString();
-        e.getPlayer().sendMessage(Component.text("实体 ID:" + key + "  [点击复制]").clickEvent(ClickEvent.copyToClipboard(key)));
+        e.getPlayer().sendMessage(Msg.p("实体 ID:" + key + "  [点击复制]").clickEvent(ClickEvent.copyToClipboard(key)));
     }
 
     void releaseSlab(Player p, ItemStack hand, Location at) {
         PersistentDataContainer d = hand.getItemMeta().getPersistentDataContainer();
         String model = d.get(kSlabModel, PersistentDataType.STRING);
-        if (model == null || model.isEmpty()) { p.sendActionBar(Component.text("石板里没有女仆。")); return; }
+        if (model == null || model.isEmpty()) { p.sendActionBar(Msg.bad("石板里没有女仆。")); return; }
         Llama m = pl.spawnMaid(at, p.getUniqueId(), model);
         var pdc = m.getPersistentDataContainer();
         pdc.set(pl.kFav, PersistentDataType.INTEGER, d.getOrDefault(kSlabFav, PersistentDataType.INTEGER, 0));
@@ -386,7 +387,7 @@ final class ItemFeatures implements Listener {
         ItemStack empty = pl.ceItem(NS + "smart_slab_empty");
         hand.setAmount(hand.getAmount() - 1);
         if (empty != null) p.getInventory().addItem(empty).values().forEach(r -> p.getWorld().dropItemNaturally(p.getLocation(), r));
-        p.sendActionBar(Component.text("女仆从石板里出来了。"));
+        p.sendActionBar(Msg.c("女仆从石板里出来了。"));
     }
 
     static int rank(String k) { return switch (k) { case "small" -> 1; case "middle" -> 2; case "big" -> 3; default -> 0; }; }
