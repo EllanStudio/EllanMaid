@@ -1,0 +1,10 @@
+# Where the installer puts the runtime manifests (tlm_models.json, altar_recipes.json)
+runtime-dir: plugins/EllanMaid/runtime
+# power: stored per player, gained from power points, spent at the altar
+power-per-point: 0.1
+power-max: 5.0
+power-drop-chance: 0.2
+# size of the maid shown on a garage kit (1.0 = life size)
+kit-scale: 0.8
+# multiplier for chess piece size (1.0 = real size of the piece models)
+board-piece-scale: 1.0

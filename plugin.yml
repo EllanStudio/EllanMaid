@@ -1,0 +1,15 @@
+name: EllanMaid
+version: 0.6.0
+main: studio.ellan.maid.EllanMaid
+api-version: '26.1.2'
+folia-supported: true
+depend: [ModelEngine, CraftEngine]
+description: Touhou Little Maid style maids for Paper, built on ModelEngine and CraftEngine (EllanStudio)
+commands:
+  ellanmaid:
+    description: Maid admin command
+    usage: /ellanmaid <give|summon|reload> ...
+    permission: ellanmaid.admin
+permissions:
+  ellanmaid.admin:
+    default: op
