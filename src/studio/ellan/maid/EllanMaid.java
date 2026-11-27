@@ -204,9 +204,9 @@ public final class EllanMaid extends JavaPlugin implements Listener {
             String b64 = en.getPersistentDataContainer().get(kSnacks, PersistentDataType.STRING);
             int n;
             if (b64 != null) n = ItemStack.deserializeItemsFromBytes(Base64.getDecoder().decode(b64)).length;
-            else if (isSnackCabinet(en)) n = 0; // empty cabinet: the snack bones must be hidden as well
+            else if (en instanceof ItemDisplay || isSnackCabinet(en)) n = 0; // maybe an empty cabinet: checked by its model below
             else continue;
-            en.getScheduler().runDelayed(this, t -> snackView(en, n), null, 60L);
+            for (long d : new long[]{40L, 100L}) en.getScheduler().runDelayed(this, t -> snackView(en, n), null, d);
         }
     }
     @EventHandler public void onTransform(EntityTransformEvent e) { if (isMaid(e.getEntity())) e.setCancelled(true); }
@@ -391,6 +391,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
         ModeledEntity me = ModelEngineAPI.getModeledEntity(base);
         if (me == null) return;
         for (ActiveModel am : me.getModels().values()) {
+            if (!"tlm_block_snack_cabinet".equals(am.getBlueprint().getName())) continue;
             am.getBone("half").ifPresent(b -> b.setVisible(n > 0 && n <= SNACK_MAX / 2));
             am.getBone("full").ifPresent(b -> b.setVisible(n > SNACK_MAX / 2));
         }
