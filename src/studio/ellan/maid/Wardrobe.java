@@ -81,7 +81,7 @@ final class Wardrobe implements Listener {
         String next = pl.modelKeys.get(idx);
         if (next.equals(z.getPersistentDataContainer().get(pl.kModel, PersistentDataType.STRING))) return;
         if (pl.getConfig().getBoolean("wardrobe.consume", true) && p.getGameMode() != GameMode.CREATIVE && !takeTicket(p)) {
-            p.sendActionBar(Msg.bad("你身上没有换装券了。"));
+            p.sendActionBar(Msg.bad("你身上没有女仆换装券了。"));
             p.closeInventory();
             return;
         }

@@ -104,8 +104,8 @@ final class Work {
     /** pays for one unit of work; tells the owner (rarely) why not */
     boolean pay(Llama z, Player owner, String job) {
         int c = cost(z, job);
-        if (left(owner) < c) { notice(z, owner, "今天女仆已经很累了，明天再让她干活吧。（每日上限 " + dailyLimit() + "）"); return false; }
-        while (stamina(z) < c) if (!eat(z)) { notice(z, owner, "女仆没力气了，往她的背包里放些食物吧。"); return false; }
+        if (left(owner) < c) { notice(z, owner, "你今天的女仆工作量已经用完了（每日 " + dailyLimit() + " 点），明天再让她干活吧。"); return false; }
+        while (stamina(z) < c) if (!eat(z)) { notice(z, owner, "女仆体力不足，往她的背包里放些食物吧。"); return false; }
         setStamina(z, stamina(z) - c);
         addUsed(owner, c);
         return true;
@@ -116,7 +116,7 @@ final class Work {
         Long last = lastNotice.get(z.getUniqueId());
         if (last != null && now - last < 60_000) return;
         lastNotice.put(z.getUniqueId(), now);
-        owner.sendMessage(Msg.p("[女仆] " + msg));
+        owner.sendMessage(Msg.pBad(msg));
     }
 
     Player owner(Llama z) {
@@ -130,7 +130,7 @@ final class Work {
         Map<UUID, Long> m = active.computeIfAbsent(owner.getUniqueId(), k -> new HashMap<>());
         m.values().removeIf(t -> now - t > 200);
         if (!m.containsKey(z.getUniqueId()) && m.size() >= cfg().getInt("max-working-maids", 2)) {
-            notice(z, owner, "同时干活的女仆最多 " + cfg().getInt("max-working-maids", 2) + " 位。");
+            notice(z, owner, "同时干活的女仆最多 " + cfg().getInt("max-working-maids", 2) + " 位，这位先歇着。");
             return false;
         }
         m.put(z.getUniqueId(), now);
@@ -306,7 +306,7 @@ final class Work {
         Location c = station.getLocation().add(0.5, 0, 0.5);
         if (z.getLocation().distanceSquared(c) > 3 * 3) { z.getPathfinder().moveTo(c, 1.0); delay(z, 1_000); return; }
         if (!slot(z, owner)) { delay(z, 10_000); return; }
-        if (!allowed(owner, station)) { notice(z, owner, "女仆不能使用这个灶台。"); delay(z, 30_000); return; }
+        if (!allowed(owner, station)) { notice(z, owner, "这个灶台不在你能使用的地方，女仆用不了。"); delay(z, 30_000); return; }
         if (!pay(z, owner, "cook")) { delay(z, 10_000); return; }
         bag = pl.items.readBag(z);
         if (!cooking.consume(r, bag)) { delay(z, 5_000); return; }
@@ -343,7 +343,7 @@ final class Work {
 
     String status(Llama z, Player viewer) {
         String s = "体力 " + stamina(z) + "/" + maxStamina();
-        if (viewer != null) s += " · 今日还能干 " + left(viewer);
+        if (viewer != null) s += " · 今日工作量剩余 " + left(viewer) + "/" + dailyLimit();
         return s;
     }
 

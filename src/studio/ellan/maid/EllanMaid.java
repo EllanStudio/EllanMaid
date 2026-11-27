@@ -307,7 +307,7 @@ public final class EllanMaid extends JavaPlugin implements Listener {
             e.setCancelled(true);
             double need = r.has("power") ? r.get("power").getAsDouble() : 0;
             if (items.power(e.getPlayer()) + 1e-9 < need) {
-                e.getPlayer().sendMessage(Msg.pBad(String.format("祭坛需要 %.1f 的力量,你只有 %.1f。击杀怪物会掉落力量点。", need, items.power(e.getPlayer()))));
+                e.getPlayer().sendMessage(Msg.pBad(String.format("祭坛需要 %.1f 力量，你只有 %.1f。打怪有概率掉落 P点。", need, items.power(e.getPlayer()))));
                 return;
             }
             items.setPower(e.getPlayer(), items.power(e.getPlayer()) - need);

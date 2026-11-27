@@ -89,8 +89,8 @@ final class Boards {
                 s.selected = -1;
                 s.fen = r.move().fenAfter();
                 render(s, base);
-                if (r.move().mate()) { p.sendMessage(Msg.p("你赢了!")); finish(s); return true; }
-                if (r.move().check()) p.sendActionBar(Msg.c("将军!"));
+                if (r.move().mate()) { p.sendMessage(Msg.p("你赢了！")); finish(s); return true; }
+                if (r.move().check()) p.sendActionBar(Msg.c("将军！"));
                 if (g.isDraw(s.fen)) { p.sendMessage(Msg.p("和棋。")); finish(s); return true; }
                 reply(s, base, p);
             }
@@ -110,11 +110,11 @@ final class Boards {
             final BoardGame.Move mv = m;
             Bukkit.getGlobalRegionScheduler().run(pl, u -> {
                 s.busy = false;
-                if (mv == null) { p.sendMessage(Msg.p("女仆无子可走,你赢了!")); finish(s); return; }
+                if (mv == null) { p.sendMessage(Msg.p("女仆无子可走，你赢了！")); finish(s); return; }
                 s.fen = mv.fenAfter();
                 render(s, base);
                 if (mv.mate()) { p.sendMessage(Msg.p("女仆赢了。")); finish(s); }
-                else if (mv.check()) p.sendActionBar(Msg.c("你被将军了!"));
+                else if (mv.check()) p.sendActionBar(Msg.c("你被将军了！"));
             });
         });
     }

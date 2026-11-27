@@ -52,7 +52,7 @@ class Fishing implements Listener {
         ItemStack[] bag = pl.items.readBag(z);
         int i = rod(bag);
         if (i < 0) return false;
-        if (!ItemFeatures.damage(bag[i], cfg().getInt("tool-wear.fish", 1))) { bag[i] = null; p.sendMessage(Msg.pBad("[女仆] 女仆的鱼竿用坏了。")); }
+        if (!ItemFeatures.damage(bag[i], cfg().getInt("tool-wear.fish", 1))) { bag[i] = null; p.sendMessage(Msg.pBad("女仆的鱼竿用坏了。")); }
         pl.items.writeBag(z, bag);
         return true;
     }
